@@ -61,7 +61,7 @@ namespace Laba6
                 return;
             }
 
-            var gaussSolver = new GausMethod((uint)dataGridView1.Rows.Count, (uint)dataGridView1.Columns.Count);
+            GausMethod gaussSolver = new GausMethod((uint)dataGridView1.Rows.Count, (uint)dataGridView1.Columns.Count);
 
             for (int row = 0; row < dataGridView1.Rows.Count; row++)
             {
@@ -100,8 +100,34 @@ namespace Laba6
                 MessageBox.Show("Множество решений");
             }
         }
+
+        private void quad_square_button_Click(object sender, EventArgs e)
+        {
+            Holeckiy hol = new Holeckiy(Convert.ToInt32(textBox1.Text));
+            double[,] a = new double[Convert.ToInt32(textBox1.Text), Convert.ToInt32(textBox1.Text)];
+            double[] b = new double[Convert.ToInt32(textBox1.Text)];
+            double[] result = new double[Convert.ToInt32(textBox1.Text)];
+            for (int row = 0; row < a.GetLength(0); row++)
+            {
+                for (int column = 0; column < a.GetLength(1); column++)
+                {
+                   a[row,column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
+                }
+            }
+            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+            {
+                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+            }
+            result = hol.HolerskiySolve(a, b);
+            dataGridView3.Columns.Add("", "");
+            for (int row = 0; row < result.GetLength(0); row++)
+            {
+                dataGridView3.Rows.Add();
+                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
+            }
+        }
     }
-    
+
     class GausMethod
     {
         public uint RowCount;
@@ -201,6 +227,75 @@ namespace Laba6
             }
             return 0;
         }
+    }
+    class Holeckiy
+    {
+        public static int size = 3;
+        public Holeckiy(int Size)
+        {
+            //size = Size;
+        }
+        #region Values
+        //Регион содержит значения всех переменных(полей) класса
+        
+        double[,] Lt = new double[size, size];//Верняя треугольная матрица
+        double[,] L = new double[size, size];//Нижняя треугольная матрица 
+        double[] y = new double[size];//Вектор у-ков
+        double[] x_vector = new double[size];//Вектор иксов
+
+        #endregion
+        
+        public double[] HolerskiySolve(double[,] a_matrix, double[] b_vector)
+        {
+            //Находим нижнюю треугольную матрицу за формулами на странице 7 в методичке [url]www.cyberforum.ru/attachments/178676d1346064142[/url]
+            L[0, 0] = Math.Sqrt(a_matrix[0, 0]);//Задаем первый элемент матрицы L как корень из первого элемента матрицы А
+            for (int i = 1; i < size; i++)
+            {
+                double SumJ_El = 0;
+                for (int j = 1; j < size + 1; j++)
+                {
+                    if (j - 1 < i)
+                    {
+                        for (int k = 0; k < j - 1; k++)
+                            SumJ_El += L[i, k] * L[j - 1, k];
+                        L[i, j - 1] = (a_matrix[i, j - 1] - SumJ_El) / L[j - 1, j - 1];
+                    }
+                }
+                double SumI_El = 0;
+                for (int k = 0; k < i; k++)
+                { SumI_El += L[i, k] * L[i, k]; }
+                L[i, i] = Math.Sqrt(a_matrix[i, i] - SumI_El);
+            }
+            
+            //Транспонируем матрицу L и получаем матрицу LT
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                    Lt[i, j] = L[j, i];// По сути транспонирование - записываем рядки, как столбцы
+
+            //Рассчитываем вектор у
+            double summa = 0;
+            for (int i = 0; i < size; i++)
+            {
+                summa = 0;
+                for (int j = 0; j < i; j++)
+                {
+                    summa += (L[i, j] * y[j]);
+                }
+                y[i] = (b_vector[i] - summa) / L[i, i];
+            }
+            for (int i = size - 1; i >= 0; i--)
+            {
+                summa = 0;
+                for (int j = size - 1; j > i; j--)
+                {
+                    summa += Lt[i, j] * x_vector[j];
+                }
+                x_vector[i] = (y[i] - summa) / Lt[i, i];
+            }
+            return x_vector;
+        }
+
+
     }
 
 }

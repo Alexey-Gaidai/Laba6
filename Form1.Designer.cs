@@ -214,6 +214,7 @@ namespace Laba6
             this.quad_square_button.TabIndex = 14;
             this.quad_square_button.Text = "Метод квадратного корня";
             this.quad_square_button.UseVisualStyleBackColor = true;
+            this.quad_square_button.Click += new System.EventHandler(this.quad_square_button_Click);
             // 
             // prognka_button
             // 
