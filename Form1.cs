@@ -41,9 +41,9 @@ namespace Laba6
             {
                 for (int j = 0; j < dataGridView1.Columns.Count; j++)
                 {
-                    dataGridView1.Rows[i].Cells[j].Value = rnd.Next(0, 100);
+                    dataGridView1.Rows[i].Cells[j].Value = rnd.Next(1, 10);
                 }
-                dataGridView2.Rows[i].Cells[0].Value = rnd.Next(0, 100);
+                dataGridView2.Rows[i].Cells[0].Value = rnd.Next(1, 10);
             }
         }
 
@@ -244,11 +244,10 @@ namespace Laba6
         double[] x_vector = new double[size];//Вектор иксов
 
         #endregion
-        
+
         public double[] HolerskiySolve(double[,] a_matrix, double[] b_vector)
         {
-            //Находим нижнюю треугольную матрицу за формулами на странице 7 в методичке [url]www.cyberforum.ru/attachments/178676d1346064142[/url]
-            L[0, 0] = Math.Sqrt(a_matrix[0, 0]);//Задаем первый элемент матрицы L как корень из первого элемента матрицы А
+            L[0, 0] = Math.Sqrt(a_matrix[0, 0]);
             for (int i = 1; i < size; i++)
             {
                 double SumJ_El = 0;
@@ -266,13 +265,9 @@ namespace Laba6
                 { SumI_El += L[i, k] * L[i, k]; }
                 L[i, i] = Math.Sqrt(a_matrix[i, i] - SumI_El);
             }
-            
-            //Транспонируем матрицу L и получаем матрицу LT
             for (int i = 0; i < size; i++)
                 for (int j = 0; j < size; j++)
-                    Lt[i, j] = L[j, i];// По сути транспонирование - записываем рядки, как столбцы
-
-            //Рассчитываем вектор у
+                    Lt[i, j] = L[j, i];
             double summa = 0;
             for (int i = 0; i < size; i++)
             {
