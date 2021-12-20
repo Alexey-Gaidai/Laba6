@@ -49,8 +49,10 @@ namespace Laba6
             this.quad_square_button = new System.Windows.Forms.Button();
             this.prognka_button = new System.Windows.Forms.Button();
             this.simple_itr_button = new System.Windows.Forms.Button();
-            this.button6 = new System.Windows.Forms.Button();
-            this.button7 = new System.Windows.Forms.Button();
+            this.gradient_button = new System.Windows.Forms.Button();
+            this.fast_button = new System.Windows.Forms.Button();
+            this.sheets_button = new System.Windows.Forms.Button();
+            this.excel_button = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView3)).BeginInit();
@@ -125,7 +127,7 @@ namespace Laba6
             // 
             this.button1.Location = new System.Drawing.Point(148, 473);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(407, 41);
+            this.button1.Size = new System.Drawing.Size(230, 41);
             this.button1.TabIndex = 7;
             this.button1.Text = "ГЕНЕРАЦИЯ";
             this.button1.UseVisualStyleBackColor = true;
@@ -181,7 +183,7 @@ namespace Laba6
             // выходToolStripMenuItem
             // 
             this.выходToolStripMenuItem.Name = "выходToolStripMenuItem";
-            this.выходToolStripMenuItem.Size = new System.Drawing.Size(53, 20);
+            this.выходToolStripMenuItem.Size = new System.Drawing.Size(54, 20);
             this.выходToolStripMenuItem.Text = "Выход";
             // 
             // очиститьToolStripMenuItem
@@ -224,6 +226,7 @@ namespace Laba6
             this.prognka_button.TabIndex = 15;
             this.prognka_button.Text = "Метод прогонки";
             this.prognka_button.UseVisualStyleBackColor = true;
+            this.prognka_button.Click += new System.EventHandler(this.prognka_button_Click);
             // 
             // simple_itr_button
             // 
@@ -233,32 +236,56 @@ namespace Laba6
             this.simple_itr_button.TabIndex = 16;
             this.simple_itr_button.Text = "Метод простой итерации";
             this.simple_itr_button.UseVisualStyleBackColor = true;
+            this.simple_itr_button.Click += new System.EventHandler(this.simple_itr_button_Click);
             // 
-            // button6
+            // gradient_button
             // 
-            this.button6.Location = new System.Drawing.Point(436, 27);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(206, 60);
-            this.button6.TabIndex = 17;
-            this.button6.Text = "button6";
-            this.button6.UseVisualStyleBackColor = true;
+            this.gradient_button.Location = new System.Drawing.Point(436, 27);
+            this.gradient_button.Name = "gradient_button";
+            this.gradient_button.Size = new System.Drawing.Size(206, 60);
+            this.gradient_button.TabIndex = 17;
+            this.gradient_button.Text = "Градиент";
+            this.gradient_button.UseVisualStyleBackColor = true;
+            this.gradient_button.Click += new System.EventHandler(this.gradient_button_Click);
             // 
-            // button7
+            // fast_button
             // 
-            this.button7.Location = new System.Drawing.Point(436, 100);
-            this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(206, 60);
-            this.button7.TabIndex = 18;
-            this.button7.Text = "button7";
-            this.button7.UseVisualStyleBackColor = true;
+            this.fast_button.Location = new System.Drawing.Point(436, 100);
+            this.fast_button.Name = "fast_button";
+            this.fast_button.Size = new System.Drawing.Size(206, 60);
+            this.fast_button.TabIndex = 18;
+            this.fast_button.Text = "Метод Наискорейшего спуска";
+            this.fast_button.UseVisualStyleBackColor = true;
+            this.fast_button.Click += new System.EventHandler(this.fast_button_Click);
+            // 
+            // sheets_button
+            // 
+            this.sheets_button.Location = new System.Drawing.Point(384, 473);
+            this.sheets_button.Name = "sheets_button";
+            this.sheets_button.Size = new System.Drawing.Size(192, 41);
+            this.sheets_button.TabIndex = 19;
+            this.sheets_button.Text = "SHEETS";
+            this.sheets_button.UseVisualStyleBackColor = true;
+            this.sheets_button.Click += new System.EventHandler(this.sheets_button_Click);
+            // 
+            // excel_button
+            // 
+            this.excel_button.Location = new System.Drawing.Point(582, 473);
+            this.excel_button.Name = "excel_button";
+            this.excel_button.Size = new System.Drawing.Size(206, 41);
+            this.excel_button.TabIndex = 20;
+            this.excel_button.Text = "EXCEL";
+            this.excel_button.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 526);
-            this.Controls.Add(this.button7);
-            this.Controls.Add(this.button6);
+            this.Controls.Add(this.excel_button);
+            this.Controls.Add(this.sheets_button);
+            this.Controls.Add(this.fast_button);
+            this.Controls.Add(this.gradient_button);
             this.Controls.Add(this.simple_itr_button);
             this.Controls.Add(this.prognka_button);
             this.Controls.Add(this.quad_square_button);
@@ -311,8 +338,10 @@ namespace Laba6
         private System.Windows.Forms.Button quad_square_button;
         private System.Windows.Forms.Button prognka_button;
         private System.Windows.Forms.Button simple_itr_button;
-        private System.Windows.Forms.Button button6;
-        private System.Windows.Forms.Button button7;
+        private System.Windows.Forms.Button gradient_button;
+        private System.Windows.Forms.Button fast_button;
+        private System.Windows.Forms.Button sheets_button;
+        private System.Windows.Forms.Button excel_button;
     }
 }
 
