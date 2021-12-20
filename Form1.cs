@@ -11,28 +11,40 @@ using System.IO;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace Laba6
 {
     public partial class Form1 : Form
     {
+        #region SettingsFields
         private static readonly string[] Scopes = { SheetsService.Scope.Spreadsheets };
         private const string SpreadsheetId = "1Kcvpqi-I6wY0HSFGehgdVp_tS70Fk2KQroZT39Z8S5Q";
         private const string GoogleCredentialsFileName = "google-credentials.json";
         private const string ReadRange = "Лист1!A:Z";
+        private const string WriteRange = "Лист2!A:Z";
 
         double[,] abc;
-
+        #endregion
         public Form1()
         {
             InitializeComponent();
         }
 
+        #region Events
         private void textBox2_TextChanged(object sender, EventArgs e)
         {
             textBox1.Text = textBox2.Text;
         }
 
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            textBox2.Text = textBox1.Text;
+        }
+        #endregion
+
+        #region UserInteractions
         private void button1_Click(object sender, EventArgs e)
         {
             dataGridView1.Columns.Clear();
@@ -58,8 +70,98 @@ namespace Laba6
             }
         }
 
-        private void gauss_button_Click(object sender, EventArgs e)
+        private void excel_button_Click(object sender, EventArgs e)
         {
+            abc = null;
+            abc = ExportExcel();
+
+            for (int i = 0; i < abc.GetLength(1) - 1; i++)
+            {
+                dataGridView1.Columns.Add("", "");
+            }
+            dataGridView1.Rows.Add(abc.GetLength(0) - 1);
+
+            for (int i = 0; i < abc.GetLength(1) - 1; i++)
+            {
+                for (int j = 0; j < abc.GetLength(0); j++)
+                {
+                    dataGridView1.Rows[i].Cells[j].Value = abc[i, j];
+                }
+            }
+            dataGridView2.Columns.Add("", "");
+            for (int i = 0; i < abc.GetLength(0) - 1; i++)
+            {
+                dataGridView2.Rows.Add();
+            }
+            for (int i = 0; i < abc.GetLength(0); i++)
+            {
+                dataGridView2.Rows[i].Cells[0].Value = abc[i, abc.GetLength(1) - 1];
+            }
+        }
+
+        async private void button2_Click(object sender, EventArgs e)
+        {
+            var serviceValues = GetSheetsService().Spreadsheets.Values;
+            double[] resultforexport = new double[dataGridView3.Rows.Count];
+            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
+            double[] b = new double[dataGridView2.Rows.Count];
+            double[] result = new double[dataGridView2.Rows.Count];
+
+
+
+            for (int row = 0; row < a.GetLength(0); row++)
+            {
+                for (int column = 0; column < a.GetLength(1); column++)
+                {
+                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
+                }
+            }
+
+            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+            {
+                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+            }
+            for (int i = 0; i < dataGridView3.Rows.Count; i++)
+            {
+                resultforexport[i] = Convert.ToDouble(dataGridView3.Rows[i].Cells[0].Value);
+            }
+            await WriteAsync(serviceValues, a, b, resultforexport);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            double[] resultforexport = new double[dataGridView3.Rows.Count];
+            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
+            double[] b = new double[dataGridView2.Rows.Count];
+            double[] result = new double[dataGridView2.Rows.Count];
+
+
+
+            for (int row = 0; row < a.GetLength(0); row++)
+            {
+                for (int column = 0; column < a.GetLength(1); column++)
+                {
+                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
+                }
+            }
+
+            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+            {
+                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+            }
+
+            for (int i = 0; i < dataGridView3.Rows.Count; i++)
+            {
+                resultforexport[i] = Convert.ToDouble(dataGridView3.Rows[i].Cells[0].Value);
+            }
+
+            ExportToExcel(a, b, resultforexport);
+        }
+        async private void gauss_button_Click(object sender, EventArgs e)
+        {
+            dataGridView3.Rows.Clear();
+            dataGridView3.Columns.Clear();
+
             if (dataGridView1.Rows.Count != dataGridView2.Rows.Count)
             {
                 MessageBox.Show("Размер матриц несоответствующий");
@@ -95,10 +197,13 @@ namespace Laba6
                 dataGridView3.Columns.Clear();
 
                 dataGridView3.Columns.Add("", "");
+                for (int i = 0; i < gaussSolver.Answer.Length-1; i++)
+                {
+                    dataGridView3.Rows.Add();
+                }
 
                 for (int row = 0; row < gaussSolver.Answer.Length; row++)
                 {
-                    dataGridView3.Rows.Add();
                     dataGridView3.Rows[row].Cells[0].Value = Math.Round(gaussSolver.Answer[row],3);
                 }
             }
@@ -112,8 +217,11 @@ namespace Laba6
             }
         }
 
-        private void quad_square_button_Click(object sender, EventArgs e)
+        async private void quad_square_button_Click(object sender, EventArgs e)
         {
+            dataGridView3.Rows.Clear();
+            dataGridView3.Columns.Clear();
+
             double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
             double[] b = new double[dataGridView2.Rows.Count];
             double[] result = new double[dataGridView2.Rows.Count];
@@ -134,19 +242,23 @@ namespace Laba6
 
 
             Holeckiy hol = new Holeckiy(a, b, dataGridView1.Rows.Count);
-            result = hol.vectorX();
-           
-            dataGridView3.Columns.Add("", "");
-            for (int row = 0; row < result.GetLength(0); row++)
+            result = await Task.Run(()=>hol.vectorX());
+
+            if (result != null)
             {
-                dataGridView3.Rows.Add();
-                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
+                dataGridView3.Columns.Add("", "");
+                for (int row = 0; row < result.GetLength(0); row++)
+                {
+                    dataGridView3.Rows.Add();
+                    dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
+                }
             }
         }
 
 
         async private void sheets_button_Click(object sender, EventArgs e)
         {
+            abc = null;
             var serviceValues = GetSheetsService().Spreadsheets.Values;
             await ReadAsync(serviceValues);
             for (int i = 0; i < abc.GetLength(1)-1; i++)
@@ -173,6 +285,172 @@ namespace Laba6
             }
         }
 
+        
+
+        async private void prognka_button_Click(object sender, EventArgs e)
+        {
+            dataGridView3.Rows.Clear();
+            dataGridView3.Columns.Clear();
+
+            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
+            double[] b = new double[dataGridView2.Rows.Count];
+            double[] result = new double[dataGridView2.Rows.Count];
+
+
+
+            for (int row = 0; row < a.GetLength(0); row++)
+            {
+                for (int column = 0; column < a.GetLength(1); column++)
+                {
+                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
+                }
+            }
+            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+            {
+                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+            }
+
+
+            Run r = new Run(a, b, dataGridView1.Rows.Count);
+            result = await Task.Run(()=>r.vectorX());
+
+            dataGridView3.Columns.Add("", "");
+            if (result != null)
+            {
+                for (int row = 0; row < result.GetLength(0); row++)
+                {
+                    dataGridView3.Rows.Add();
+                    dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
+                }
+            }
+        }
+
+        async private void simple_itr_button_Click(object sender, EventArgs e)
+        {
+            dataGridView3.Rows.Clear();
+            dataGridView3.Columns.Clear();
+
+            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
+            double[] b = new double[dataGridView2.Rows.Count];
+            double[] result = new double[dataGridView2.Rows.Count];
+
+
+
+            for (int row = 0; row < a.GetLength(0); row++)
+            {
+                for (int column = 0; column < a.GetLength(1); column++)
+                {
+                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
+                }
+            }
+            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+            {
+                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+            }
+
+
+            SimpleIteration simp = new SimpleIteration(a, b, dataGridView1.Rows.Count);
+            result = await Task.Run(()=>simp.vectorX());
+
+            dataGridView3.Columns.Add("", "");
+            for (int row = 0; row < result.GetLength(0); row++)
+            {
+                dataGridView3.Rows.Add();
+                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
+            }
+        }
+
+        async private void gradient_button_Click(object sender, EventArgs e)
+        {
+            dataGridView3.Rows.Clear();
+            dataGridView3.Columns.Clear();
+
+            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
+            double[] b = new double[dataGridView2.Rows.Count];
+            double[] result = new double[dataGridView2.Rows.Count];
+
+
+
+            for (int row = 0; row < a.GetLength(0); row++)
+            {
+                for (int column = 0; column < a.GetLength(1); column++)
+                {
+                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
+                }
+            }
+            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+            {
+                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+            }
+
+
+            Gradient grad = new Gradient(a, b, dataGridView1.Rows.Count);
+            result = await Task.Run(()=>grad.vectorX());
+
+            dataGridView3.Columns.Add("", "");
+            for (int row = 0; row < result.GetLength(0); row++)
+            {
+                dataGridView3.Rows.Add();
+                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
+            }
+        }
+
+        async private void fast_button_Click(object sender, EventArgs e)
+        {
+            dataGridView3.Rows.Clear();
+            dataGridView3.Columns.Clear();
+
+            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
+            double[] b = new double[dataGridView2.Rows.Count];
+            double[] result = new double[dataGridView2.Rows.Count];
+
+
+
+            for (int row = 0; row < a.GetLength(0); row++)
+            {
+                for (int column = 0; column < a.GetLength(1); column++)
+                {
+                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
+                }
+            }
+            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+            {
+                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+            }
+
+
+            FastGradient fastgrad = new FastGradient(a, b, dataGridView1.Rows.Count);
+            result = await Task.Run(()=>fastgrad.vectorX());
+
+            dataGridView3.Columns.Add("", "");
+            for (int row = 0; row < result.GetLength(0); row++)
+            {
+                dataGridView3.Rows.Add();
+                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
+            }
+        }
+
+        private void выходToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void очиститьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            dataGridView1.Rows.Clear();
+            dataGridView1.Columns.Clear();
+            dataGridView2.Rows.Clear();
+            dataGridView2.Columns.Clear();
+            dataGridView3.Rows.Clear();
+            dataGridView3.Columns.Clear();
+            label7.Text = "";
+            label8.Text = "";
+            textBox1.Text = "";
+            textBox3.Text = "";
+        }
+        #endregion
+
+        #region Excel
         private static SheetsService GetSheetsService()//получаем ответ от сервера
         {
             using (var stream = new FileStream(GoogleCredentialsFileName, FileMode.Open, FileAccess.Read))
@@ -195,148 +473,109 @@ namespace Laba6
                 return;
             }
 
-            abc = new double[values.Count, values.Count+1];
+            abc = new double[values.Count, values.Count + 1];
 
             for (int i = 0; i < values.Count; i++)
             {
-                for (int j = 0; j < values.Count+1; j++)
+                for (int j = 0; j < values.Count + 1; j++)
                 {
-                    abc[i,j] = Convert.ToDouble(values[i][j]);
+                    abc[i, j] = Convert.ToDouble(values[i][j]);
                 }
-                
+
             }
 
         }
-
-        private void prognka_button_Click(object sender, EventArgs e)
+        private static async Task WriteAsync(SpreadsheetsResource.ValuesResource valuesResource, double[,] a_matrix, double[] vectorB, double[] values)
         {
-            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
-            double[] b = new double[dataGridView2.Rows.Count];
-            double[] result = new double[dataGridView2.Rows.Count];
-
-
-
-            for (int row = 0; row < a.GetLength(0); row++)
+            var vallist = new List<object>();
+            var valueRange = new ValueRange();
+            for (int i = 0; i < values.Length; i++)
             {
-                for (int column = 0; column < a.GetLength(1); column++)
-                {
-                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
-                }
+                vallist.Add(values[i]);
             }
-            for (int row = 0; row < dataGridView2.Rows.Count; row++)
-            {
-                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
-            }
-
-
-            Run r = new Run(a, b, dataGridView1.Rows.Count);
-            result = r.vectorX();
-
-            dataGridView3.Columns.Add("", "");
-            for (int row = 0; row < result.GetLength(0); row++)
-            {
-                dataGridView3.Rows.Add();
-                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
-            }
+            valueRange.Values = new List<IList<object>> { vallist };
+            var update = valuesResource.Update(valueRange, SpreadsheetId, WriteRange);
+            update.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.RAW;
+            var response = await update.ExecuteAsync();
         }
 
-        private void simple_itr_button_Click(object sender, EventArgs e)
+        private void ExportToExcel(double[,] a_matrix, double[] vectorB, double[] vectorX)
         {
-            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
-            double[] b = new double[dataGridView2.Rows.Count];
-            double[] result = new double[dataGridView2.Rows.Count];
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.DefaultExt = "*.xls;*.xlsx";
+            ofd.Filter = "файл Excel (Spisok.xlsx)|*.xlsx";
+            ofd.Title = "Выберите файл базы данных";
 
+            if (!(ofd.ShowDialog() == DialogResult.OK))
+                MessageBox.Show("", "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
+            Excel.Application ObjWorkExcel = new Excel.Application();
+            Excel.Workbook ObjWorkBook = ObjWorkExcel.Workbooks.Open(ofd.FileName);
+            Excel.Worksheet ObjWorkSheet = ObjWorkBook.Sheets[2];
 
-            for (int row = 0; row < a.GetLength(0); row++)
+            for (int i = 0; i < a_matrix.GetLength(0); i++)
             {
-                for (int column = 0; column < a.GetLength(1); column++)
+                for (int j = 0; j < a_matrix.GetLength(1); j++)
                 {
-                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
+                    ObjWorkSheet.Cells[i + 1, j + 1] = a_matrix[i, j];
                 }
             }
-            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+
+            for (int i = 1; i < vectorB.Length + 1; i++)
             {
-                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+                ObjWorkSheet.Cells[i, a_matrix.GetLength(0) + 1] = vectorB[i - 1];
             }
 
-
-            SimpleIteration simp = new SimpleIteration(a, b, dataGridView1.Rows.Count);
-            result = simp.vectorX();
-
-            dataGridView3.Columns.Add("", "");
-            for (int row = 0; row < result.GetLength(0); row++)
+            for (int i = 1; i < vectorX.Length + 1; i++)
             {
-                dataGridView3.Rows.Add();
-                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
+                ObjWorkSheet.Cells[i, a_matrix.GetLength(0) + 2] = vectorX[i - 1];
             }
+
+            ObjWorkExcel.Visible = true;
         }
 
-        private void gradient_button_Click(object sender, EventArgs e)
+        private double[,] ExportExcel()//получение точек из эксель
         {
-            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
-            double[] b = new double[dataGridView2.Rows.Count];
-            double[] result = new double[dataGridView2.Rows.Count];
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.DefaultExt = "*.xls;*.xlsx";
+            ofd.Filter = "файл Excel (Spisok.xlsx)|*.xlsx";
+            ofd.Title = "Выберите файл базы данных";
 
+            double[,] list = null;
 
+            if (!(ofd.ShowDialog() == DialogResult.OK))
+                MessageBox.Show("", "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-            for (int row = 0; row < a.GetLength(0); row++)
+            Excel.Application ObjWorkExcel = new Excel.Application();
+            Excel.Workbook ObjWorkBook = ObjWorkExcel.Workbooks.Open(ofd.FileName);
+            Excel.Worksheet ObjWorkSheet = (Excel.Worksheet)ObjWorkBook.Sheets[1];
+
+            var lastCell = ObjWorkSheet.Cells.SpecialCells(Excel.XlCellType.xlCellTypeLastCell);
+            int lastColumn = (int)lastCell.Column;
+            int lastRow = (int)lastCell.Row;
+            if (lastRow <= 2)
             {
-                for (int column = 0; column < a.GetLength(1); column++)
-                {
-                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
-                }
+                MessageBox.Show("Недостаточное количество точек", "Ошибка!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            for (int row = 0; row < dataGridView2.Rows.Count; row++)
+            else
             {
-                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
+                list = new double[lastRow, lastColumn];
+
+                for (int j = 0; j < lastRow; j++)
+                    for (int i = 0; i < lastColumn; i++)
+                        list[j, i] = Convert.ToDouble(ObjWorkSheet.Cells[j + 1, i + 1].Text);
             }
 
-
-            Gradient grad = new Gradient(a, b, dataGridView1.Rows.Count);
-            result = grad.vectorX();
-
-            dataGridView3.Columns.Add("", "");
-            for (int row = 0; row < result.GetLength(0); row++)
-            {
-                dataGridView3.Rows.Add();
-                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
-            }
+            ObjWorkBook.Close(false, Type.Missing, Type.Missing);
+            ObjWorkExcel.Quit();
+            ObjWorkExcel.Quit();
+            GC.Collect();
+            return list;
         }
+        #endregion
 
-        private void fast_button_Click(object sender, EventArgs e)
-        {
-            double[,] a = new double[dataGridView1.Rows.Count, dataGridView1.Columns.Count];
-            double[] b = new double[dataGridView2.Rows.Count];
-            double[] result = new double[dataGridView2.Rows.Count];
-
-
-
-            for (int row = 0; row < a.GetLength(0); row++)
-            {
-                for (int column = 0; column < a.GetLength(1); column++)
-                {
-                    a[row, column] = Convert.ToInt32(dataGridView1.Rows[row].Cells[column].Value);
-                }
-            }
-            for (int row = 0; row < dataGridView2.Rows.Count; row++)
-            {
-                b[row] = Convert.ToInt32(dataGridView2.Rows[row].Cells[0].Value);
-            }
-
-
-            FastGradient fastgrad = new FastGradient(a, b, dataGridView1.Rows.Count);
-            result = fastgrad.vectorX();
-
-            dataGridView3.Columns.Add("", "");
-            for (int row = 0; row < result.GetLength(0); row++)
-            {
-                dataGridView3.Rows.Add();
-                dataGridView3.Rows[row].Cells[0].Value = Math.Round(result[row], 3);
-            }
-        }
     }
-
+    #region Methods
     class FastGradient
     {
         double[,] a_matrix;
@@ -487,7 +726,7 @@ namespace Laba6
         double[,] a_matrix;
         double[] b_vector;
         public int n;
-        double eps = 1e-9;
+        double eps = 0.1;
         int Iterations = 0;
 
         public SimpleIteration(double[,] a_matrixA, double[] vectorB, int size)
@@ -632,7 +871,7 @@ namespace Laba6
 
     class Holeckiy
     {
-        double[,] a_a_matrix;
+        double[,] a_matrix;
         double[] b_vector;
         public int n;
         public double[,] L;
@@ -642,18 +881,43 @@ namespace Laba6
 
         public Holeckiy(double[,] a_matrixA, double[] vectorB, int size)
         {
-            this.a_a_matrix = a_matrixA;
+            this.a_matrix = a_matrixA;
             this.b_vector = vectorB;
             this.n = size;
         }
 
         public double[] vectorX()
         {
-            L = Decomposition();
-            y = Reverse(L, b_vector, true);
-            LT = Transpose(L);
-            x = Reverse(LT, y, false);
-            return x;
+            bool a = simetricCheck();
+            if (a != true)
+            {
+                MessageBox.Show("Матрица должна быть симметрична относительно главной диагонали", "Ошибка!",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return null;
+            }
+            else
+            {
+                L = Decomposition();
+                y = Reverse(L, b_vector, true);
+                LT = Transpose(L);
+                x = Reverse(LT, y, false);
+                return x;
+            }
+        }
+
+
+        public bool simetricCheck()
+        {
+            bool a = true;
+            for (int i = 0; i < a_matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < a_matrix.GetLength(1)-1; j++)
+                {
+                    if (a_matrix[i, j] != a_matrix[j, i])
+                        a = false;
+                }
+            }
+            return a;
         }
 
         public double[,] Decomposition()
@@ -673,11 +937,11 @@ namespace Laba6
                     {
                         temp += L[i,k] * L[j,k];
                     }
-                    L[i,j] = (a_a_matrix[i,j] - temp) / L[j,j];
+                    L[i,j] = (a_matrix[i,j] - temp) / L[j,j];
                 }
 
                 //Находим значение диагонального элемента
-                temp = a_a_matrix[i,i];
+                temp = a_matrix[i,i];
                 for (int k = 0; k < i; k++)
                 {
                     temp -= L[i,k] * L[i,k];
@@ -837,5 +1101,6 @@ namespace Laba6
             return 0;
         }
     }
+    #endregion
 
 }
